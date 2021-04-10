@@ -1,0 +1,193 @@
+GET _search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+DELETE /overview-*
+
+GET /_cluster/health
+
+GET /_cat/indices?v
+
+GET /_cat/shards?v
+
+PUT /pages
+
+DELETE /log-*
+
+DELETE /overview-*
+
+DELETE /75*
+
+PUT /products
+{
+  "settings": {
+    "number_of_shards": 2,
+    "number_of_replicas": 2
+  }
+}
+
+POST /products/_doc
+{
+  "name": "Coffee Maker",
+  "price": 64,
+  "in_stock": 10
+}
+
+GET /products/_doc/100
+
+PUT /products/_doc/100
+{
+  "name": "Toaster",
+  "price": 6,
+  "in_stock": 4
+}
+
+POST /products/_update/100
+{
+  "doc": {
+    "in_stock": 5
+  }
+}
+
+GET /recipes/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+
+PUT /_template/fts_log_template
+{
+    "index_patterns": ["log-*"],
+    "template": {
+      "settings": {
+        "number_of_shards": 1
+      },
+      "mappings": {
+        "properties": {
+          "NR": { "type": "integer" },
+          "ping.result":{ "type" : "keyword" },
+          "ping.test":{ "type" : "text" },
+          "fts_connect.result":{ "type" : "keyword" },
+          "fts_connect.test":{ "type" : "text" },
+          "Initialization.result":{ "type" : "keyword" },
+          "Initialization.test":{ "type" : "text" },
+          "temperature_voltage.result":{ "type" : "keyword" },
+          "temperature_voltage.test":{ "type" : "text" },
+          "Amplifier.result":{ "type" : "keyword" },
+          "Amplifier.test":{ "type" : "text" },
+          "Check_A2B.result":{ "type" : "keyword" },
+          "Check_A2B.test":{ "type" : "text" },
+          "Check_ANC_Mic.result":{ "type" : "keyword" },
+          "Check_ANC_Mic.test":{ "type" : "text" }
+        }
+      }
+    }
+}
+
+GET /_template/fts_log_template
+
+GET /log-*/_mapping
+
+GET /_cat/shards
+
+GET /_nodes/stats
+
+GET /kibana_sample_data_ecommerce/_search?size=0
+
+GET /kibana_sample_data_ecommerce/_stats
+
+GET /kibana_sample_data_commerce_shrunk/_stats
+
+#get node information
+GET /_cat/shards/kibana_sample_data_commerce_*?v&h=index,shard,prirep,state,docs,node
+
+#Need to block write access to index before an index can be splitted
+PUT /kibana_sample_data_ecommerce/_settings
+{
+  "settings" : {
+    "index.blocks.write" : true
+  }
+}
+
+#Split index into multiple shards
+POST /kibana_sample_data_ecommerce/_split/kibana_sample_data_commerce_target
+{
+  "settings" : {
+    "index.number_of_shards" : 10
+  }
+}
+
+PUT /kibana_sample_data_commerce_target/_settings
+{
+  "settings": {
+    "index.number_of_replicas" : 0,
+    "index.routing.allocation.require._name": "LAPTOP-CCP3R2AU",
+    "index.blocks.write" : true
+  }
+}
+
+POST /kibana_sample_data_commerce_target/_shrink/kibana_sample_data_commerce_shrunk
+{
+  "settings": {
+    "index.routing.allocation.require._name": null,
+    "index.blocks.write" : null,
+    "index.number_of_replicas" : 1,
+    "index.number_of_shards" : 2
+  }
+}
+
+PUT /_index_template/demo-rollover
+{
+  "template" : {
+    "mappings" : {
+      "properties" : {
+        "foo" : {
+          "type" : "keyword"
+        }
+      }
+    },
+    "aliases" : {
+      "demo-rollover" : {}
+    }
+  },
+  "index_patterns": ["demo-rollover-*"]
+}
+
+PUT /demo-rollover-000001
+{
+  "aliases": {
+    "demo-rollover-write": {}
+  }
+}
+
+GET /_cat/aliases
+
+GET /demo-rollover/_stats
+
+POST /demo-rollover-write/_doc
+{
+  "foo" : "bar"
+}
+
+POST /demo-rollover-write/_rollover
+{
+  "conditions" : {
+    "max_docs" : 10,
+    "max_age"  : "7d",
+    "max_size" : "20gb"
+  }
+}
+
+GET /_cat/shards/demo-rollover-*?v&h=index,shard,prirep,state,docs,node
+
+
+
+
+
+
+
